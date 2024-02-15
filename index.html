@@ -10,44 +10,12 @@
 <body>
   <div class="container">
     <ul class="comments" id="comments">
-      <li class="comment">
-        <div class="comment-header">
-          <div>Глеб Фокин</div>
-          <div>12.02.22 12:18</div>
-        </div>
-        <div class="comment-body">
-          <div class="comment-text">
-            Это будет первый комментарий на этой странице
-          </div>
-        </div>
-        <div class="comment-footer">
-          <div class="likes">
-            <span class="likes-counter">3</span>
-            <button class="like-button"></button>
-          </div>
-        </div>
-      </li>
-      <li class="comment">
-        <div class="comment-header">
-          <div>Варвара Н.</div>
-          <div>13.02.22 19:22</div>
-        </div>
-        <div class="comment-body">
-          <div class="comment-text">
-            Мне нравится как оформлена эта страница! ❤
-          </div>
-        </div>
-        <div class="comment-footer">
-          <div class="likes">
-            <span class="likes-counter">75</span>
-            <button class="like-button -active-like"></button>
-          </div>
-        </div>
-      </li>
+      <!--renderComments-->
     </ul>
     <div class="add-form">
       <input type="text" class="add-form-name" id="form-name" placeholder="Введите ваше имя" />
-      <textarea type="textarea" class="add-form-text" id="form-text" placeholder="Введите ваш коментарий" rows="4"></textarea>
+      <textarea type="textarea" class="add-form-text" id="form-text" placeholder="Введите ваш коментарий"
+        rows="4"></textarea>
       <div class="add-form-row">
         <button class="add-form-button" id="add-form-button">Написать</button>
       </div>
@@ -61,7 +29,6 @@
   const addButton = document.getElementById('add-form-button');
   const commentList = document.getElementById('comments');
   let currentDate = new Date();
-
   let day = currentDate.getDate();
   let month = currentDate.getMonth() + 1;
   let year = String(currentDate.getFullYear()).slice(2);
@@ -82,6 +49,68 @@
   };
 
   let formattedDate = `${day}.${month}.${year} ${hours}:${minutes}`;
+
+  const userComments = [
+    {
+      name: "Глеб Фокин",
+      comment: "Это будет первый комментарий на этой странице",
+      date: "12.02.22 12:18",
+      isLiked: false,
+      likeCounter: 0
+    },
+    {
+      name: "Варвара Н.",
+      comment: "Мне нравится как оформлена эта страница! ❤",
+      date: "13.02.22 19:22",
+      isLiked: false,
+      likeCounter: 0
+    }
+  ];
+
+  const initLikeButtons = () => {
+    const likeButtonElements = document.querySelectorAll('.like-button');
+
+    for (const likeButtonElement of likeButtonElements) {
+      likeButtonElement.addEventListener("click", () => {
+        const index = likeButtonElement.dataset.index;
+        if (userComments[index].isLiked === false) {
+          userComments[index].isLiked = true;
+          userComments[index].likeCounter += 1;
+        } else {
+          userComments[index].isLiked = false;
+          userComments[index].likeCounter -= 1;
+        }
+        renderComments();
+      });
+    }
+  };
+
+  const renderComments = () => {
+    const commentsHtml = userComments.map((userComment, index) => {
+      return `<li class="comment">
+        <div class="comment-header">
+          <div>${userComment.name}</div>
+          <div>${userComment.date}</div>
+        </div>
+        <div class="comment-body">
+          <div class="comment-text">
+            ${userComment.comment}
+          </div>
+        </div>
+        <div class="comment-footer">
+          <div class="likes">
+            <span class="likes-counter">${userComment.likeCounter}</span>
+            <button data-index="${index}" class="like-button ${userComment.isLiked ? 'like-button -active-like' : 'like-button'}"></button>
+          </div>
+        </div>
+      </li>`;
+    }).join('');
+    commentList.innerHTML = commentsHtml;
+    initLikeButtons();
+  };
+
+  renderComments();
+
   addButton.addEventListener("click", () => {
     const oldList = commentList.innerHTML;
     const name = document.getElementById('form-name');
@@ -94,24 +123,17 @@
     } else if (text.value === "") {
       text.classList.add("error");
     } else {
-    commentList.innerHTML = oldList + 
-      `<li class="comment">
-        <div class="comment-header">
-          <div>${name.value}</div>
-          <div>${formattedDate}</div>
-        </div>
-        <div class="comment-body">
-          <div class="comment-text">
-            ${text.value}
-          </div>
-        </div>
-        <div class="comment-footer">
-          <div class="likes">
-            <span class="likes-counter">0</span>
-            <button class="like-button"></button>
-          </div>
-        </div>
-      </li>`;}
+      userComments.push({
+        name: name.value,
+        comment: text.value,
+        date: formattedDate,
+        isLiked: false,
+        likeCounter: 0
+      });
+      name.value = '';
+      text.value = '';
+    }
+    renderComments();
   });
 </script>
 
