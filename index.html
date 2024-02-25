@@ -30,27 +30,6 @@
   const commentList = document.getElementById('comments');
   const nameUser = document.getElementById('form-name');
   const textComment = document.getElementById('form-text');
-  let currentDate = new Date();
-  let day = currentDate.getDate();
-  let month = currentDate.getMonth() + 1;
-  let year = String(currentDate.getFullYear()).slice(2);
-  let hours = currentDate.getHours();
-  let minutes = currentDate.getMinutes();
-
-  if (day < 10) {
-    day = '0' + day;
-  }
-  if (month < 10) {
-    month = '0' + month;
-  }
-  if (hours < 10) {
-    hours = '0' + hours;
-  }
-  if (minutes < 10) {
-    minutes = '0' + minutes;
-  };
-
-  let formattedDate = `${day}.${month}.${year} ${hours}:${minutes}`;
 
   let userComments = [];
 
@@ -61,7 +40,7 @@
       const textData = responseText.comments.map((comment) => {
         return {
           name: comment.author.name,
-          date: comment.date,
+          date: new Date(comment.date),
           text: comment.text,
           likes: comment.likes,
           isLiked: false
@@ -108,7 +87,7 @@
       return `<li class="comment" data-id="${userComment.id}">
         <div class="comment-header">
           <div data-name="${name}" class="comment-name">${userComment.name}</div>
-          <div>${userComment.date}</div>
+          <div>${userComment.date.toLocaleDateString('ru-RU', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</div>
         </div>
         <div class="comment-body">
           <div class="comment-text">
