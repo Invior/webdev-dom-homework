@@ -39,6 +39,7 @@
     response.json().then((responseText) => {
       const textData = responseText.comments.map((comment) => {
         return {
+          id: comment.id,
           name: comment.author.name,
           date: new Date(comment.date),
           text: comment.text,
@@ -74,17 +75,19 @@
 
   const initAnswerComment = () => {
     const answerComment = document.querySelectorAll(".comment");
-    for (const userAnswerElement of answerComment) {
-      userAnswerElement.addEventListener('click', () => {
-        const index = userAnswerElement.dataset.index;
-        text.value = `- ${userComments[index].comment} \n - ${userComments[index].name} \n`;
+    answerComment.forEach((comment) => {
+      comment.addEventListener('click', (event) => {
+        const userName = event.currentTarget.querySelector('.comment-name').textContent;
+        const text = event.currentTarget.querySelector('.comment-text').textContent.trim();
+        textComment.value = `-${text} \n - ${userName} \n`;
+        renderComments();
       });
-    };
+    });
   };
 
   const renderComments = () => {
     const commentsHtml = userComments.map((userComment, index) => {
-      return `<li class="comment" data-id="${userComment.id}">
+      return `<li class="comment" data-id="${userComment.id} data-index="${index}">
         <div class="comment-header">
           <div data-name="${name}" class="comment-name">${userComment.name}</div>
           <div>${userComment.date.toLocaleDateString('ru-RU', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</div>
@@ -111,23 +114,22 @@
     const oldList = commentList.innerHTML;
     nameUser.classList.remove("error");
     textComment.classList.remove("error");
-    if (nameUser.value === "") {
+    if (nameUser.value === "" || nameUser.value === " ") {
       nameUser.classList.add("error");
       return;
-    } else if (textComment.value === "") {
+    } else if (textComment.value === "" || textComment.value === " ") {
       textComment.classList.add("error");
     } else {
       fetch("https://wedev-api.sky.pro/api/v1/andrey-solyar/comments", {
         method: "POST",
         body: JSON.stringify({
-          text: textComment.value,
-          name: nameUser.value
+          text: textComment.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"),
+          name: nameUser.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;")
         }),
       }).then((response) => {
         response.json().then((responseText) => {
           userComments = responseText.comments;
           getComments();
-          renderComments();
         });
       });
       nameUser.value = '';
