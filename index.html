@@ -114,10 +114,10 @@
     const oldList = commentList.innerHTML;
     nameUser.classList.remove("error");
     textComment.classList.remove("error");
-    if (nameUser.value === "" || nameUser.value === " ") {
+    if (nameUser.value.trim() === "") {
       nameUser.classList.add("error");
       return;
-    } else if (textComment.value === "" || textComment.value === " ") {
+    } else if (textComment.value.trim() === "") {
       textComment.classList.add("error");
     } else {
       fetch("https://wedev-api.sky.pro/api/v1/andrey-solyar/comments", {
