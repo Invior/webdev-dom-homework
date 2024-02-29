@@ -28,46 +28,31 @@
   // Код писать здесь
   const addButton = document.getElementById('add-form-button');
   const commentList = document.getElementById('comments');
-  const name = document.getElementById('form-name');
-  const text = document.getElementById('form-text');
-  let currentDate = new Date();
-  let day = currentDate.getDate();
-  let month = currentDate.getMonth() + 1;
-  let year = String(currentDate.getFullYear()).slice(2);
-  let hours = currentDate.getHours();
-  let minutes = currentDate.getMinutes();
+  const nameUser = document.getElementById('form-name');
+  const textComment = document.getElementById('form-text');
 
-  if (day < 10) {
-    day = '0' + day;
-  }
-  if (month < 10) {
-    month = '0' + month;
-  }
-  if (hours < 10) {
-    hours = '0' + hours;
-  }
-  if (minutes < 10) {
-    minutes = '0' + minutes;
-  };
+  let userComments = [];
 
-  let formattedDate = `${day}.${month}.${year} ${hours}:${minutes}`;
+  const getComments = () => fetch("https://wedev-api.sky.pro/api/v1/andrey-solyar/comments", {
+    method: "GET"
+  }).then((response) => {
+    response.json().then((responseText) => {
+      const textData = responseText.comments.map((comment) => {
+        return {
+          id: comment.id,
+          name: comment.author.name,
+          date: new Date(comment.date),
+          text: comment.text,
+          likes: comment.likes,
+          isLiked: false
+        };
+      });
+      userComments = textData;
+      renderComments();
+    });
+  });
 
-  const userComments = [
-    {
-      name: "Глеб Фокин",
-      comment: "Это будет первый комментарий на этой странице",
-      date: "12.02.22 12:18",
-      isLiked: false,
-      likeCounter: 0
-    },
-    {
-      name: "Варвара Н.",
-      comment: "Мне нравится как оформлена эта страница! ❤",
-      date: "13.02.22 19:22",
-      isLiked: false,
-      likeCounter: 0
-    }
-  ];
+  getComments();
 
   const initLikeButtons = () => {
     const likeButtonElements = document.querySelectorAll('.like-button');
@@ -78,10 +63,10 @@
         const index = likeButtonElement.dataset.index;
         if (userComments[index].isLiked === false) {
           userComments[index].isLiked = true;
-          userComments[index].likeCounter += 1;
+          userComments[index].likes += 1;
         } else {
           userComments[index].isLiked = false;
-          userComments[index].likeCounter -= 1;
+          userComments[index].likes -= 1;
         }
         renderComments();
       });
@@ -90,29 +75,31 @@
 
   const initAnswerComment = () => {
     const answerComment = document.querySelectorAll(".comment");
-    for (const userAnswerElement of answerComment) {
-      userAnswerElement.addEventListener('click', () => {
-        const index = userAnswerElement.dataset.index;
-        text.value = `- ${userComments[index].comment} \n - ${userComments[index].name} \n`;
+    answerComment.forEach((comment) => {
+      comment.addEventListener('click', (event) => {
+        const userName = event.currentTarget.querySelector('.comment-name').textContent;
+        const text = event.currentTarget.querySelector('.comment-text').textContent.trim();
+        textComment.value = `-${text} \n - ${userName} \n`;
+        renderComments();
       });
-    };
+    });
   };
 
   const renderComments = () => {
     const commentsHtml = userComments.map((userComment, index) => {
-      return `<li class="comment" data-index="${index}">
+      return `<li class="comment" data-id="${userComment.id} data-index="${index}">
         <div class="comment-header">
           <div data-name="${name}" class="comment-name">${userComment.name}</div>
-          <div>${userComment.date}</div>
+          <div>${userComment.date.toLocaleDateString('ru-RU', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</div>
         </div>
         <div class="comment-body">
-          <div data-text="${text}" class="comment-text">
-            ${userComment.comment}
+          <div class="comment-text">
+            ${userComment.text}
           </div>
         </div>
         <div class="comment-footer">
           <div class="likes">
-            <span class="likes-counter">${userComment.likeCounter}</span>
+            <span class="likes-counter">${userComment.likes}</span>
             <button data-index="${index}" class="like-button ${userComment.isLiked ? 'like-button -active-like' : 'like-button'}"></button>
           </div>
         </div>
@@ -123,29 +110,31 @@
     initAnswerComment();
   };
 
-  renderComments();
-
   addButton.addEventListener("click", () => {
     const oldList = commentList.innerHTML;
-    name.classList.remove("error");
-    text.classList.remove("error");
-    if (name.value === "") {
-      name.classList.add("error");
+    nameUser.classList.remove("error");
+    textComment.classList.remove("error");
+    if (nameUser.value.trim() === "") {
+      nameUser.classList.add("error");
       return;
-    } else if (text.value === "") {
-      text.classList.add("error");
+    } else if (textComment.value.trim() === "") {
+      textComment.classList.add("error");
     } else {
-      userComments.push({
-        name: name.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"),
-        comment: text.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"),
-        date: formattedDate,
-        isLiked: false,
-        likeCounter: 0
+      fetch("https://wedev-api.sky.pro/api/v1/andrey-solyar/comments", {
+        method: "POST",
+        body: JSON.stringify({
+          text: textComment.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"),
+          name: nameUser.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;")
+        }),
+      }).then((response) => {
+        response.json().then((responseText) => {
+          userComments = responseText.comments;
+          getComments();
+        });
       });
-      name.value = '';
-      text.value = '';
+      nameUser.value = '';
+      textComment.value = '';
     }
-    renderComments();
   });
 
 </script>
