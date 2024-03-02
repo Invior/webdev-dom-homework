@@ -8,7 +8,9 @@
 </head>
 
 <body>
+
   <div class="container">
+    <span id="preloader">Комментарии загружаются. Пожалуйста, подождите</span>
     <ul class="comments" id="comments">
       <!--renderComments-->
     </ul>
@@ -30,13 +32,17 @@
   const commentList = document.getElementById('comments');
   const nameUser = document.getElementById('form-name');
   const textComment = document.getElementById('form-text');
-
+  const preloader = document.getElementById('preloader');
   let userComments = [];
 
-  const getComments = () => fetch("https://wedev-api.sky.pro/api/v1/andrey-solyar/comments", {
+  const getComments = () => {
+    return fetch("https://wedev-api.sky.pro/api/v1/andrey-solyar/comments", {
     method: "GET"
-  }).then((response) => {
-    response.json().then((responseText) => {
+  })
+    .then((response) => {
+      return response.json()
+    })
+    .then((responseText) => {
       const textData = responseText.comments.map((comment) => {
         return {
           id: comment.id,
@@ -47,16 +53,16 @@
           isLiked: false
         };
       });
+      preloader.classList.add("hide");
       userComments = textData;
       renderComments();
-    });
-  });
+    })
+  }
 
   getComments();
 
   const initLikeButtons = () => {
     const likeButtonElements = document.querySelectorAll('.like-button');
-
     for (const likeButtonElement of likeButtonElements) {
       likeButtonElement.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -120,22 +126,31 @@
     } else if (textComment.value.trim() === "") {
       textComment.classList.add("error");
     } else {
+      addButton.disabled = true;
+      addButton.textContent = "Комментарий добавляется";
       fetch("https://wedev-api.sky.pro/api/v1/andrey-solyar/comments", {
         method: "POST",
         body: JSON.stringify({
           text: textComment.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"),
           name: nameUser.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;")
         }),
-      }).then((response) => {
-        response.json().then((responseText) => {
+      })
+        .then((response) => {
+          return response.json()
+        })
+        .then((responseText) => {
           userComments = responseText.comments;
-          getComments();
-        });
-      });
+          return getComments();
+        })
+        .then((data) => {
+          addButton.disabled = false;
+          addButton.textContent = "Написать";
+        })
       nameUser.value = '';
       textComment.value = '';
     }
   });
+
 
 </script>
 
