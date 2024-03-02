@@ -37,26 +37,29 @@
 
   const getComments = () => {
     return fetch("https://wedev-api.sky.pro/api/v1/andrey-solyar/comments", {
-    method: "GET"
-  })
-    .then((response) => {
-      return response.json()
+      method: "GET"
     })
-    .then((responseText) => {
-      const textData = responseText.comments.map((comment) => {
-        return {
-          id: comment.id,
-          name: comment.author.name,
-          date: new Date(comment.date),
-          text: comment.text,
-          likes: comment.likes,
-          isLiked: false
-        };
-      });
-      preloader.classList.add("hide");
-      userComments = textData;
-      renderComments();
-    })
+      .then((response) => {
+        return response.json()
+      })
+      .then((responseText) => {
+        const textData = responseText.comments.map((comment) => {
+          return {
+            id: comment.id,
+            name: comment.author.name,
+            date: new Date(comment.date),
+            text: comment.text,
+            likes: comment.likes,
+            isLiked: false
+          };
+        });
+        preloader.classList.add("hide");
+        userComments = textData;
+        renderComments();
+      })
+      .catch((error) => {
+        alert('Что-то пошло не так. Попробуйте позже');
+      })
   }
 
   getComments();
@@ -132,11 +135,18 @@
         method: "POST",
         body: JSON.stringify({
           text: textComment.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"),
-          name: nameUser.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;")
+          name: nameUser.value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"),
+          forceError: true
         }),
       })
         .then((response) => {
-          return response.json()
+          if (response.status === 500) {
+            throw new Error('Сервер сломался');
+          } else if (response.status === 400) {
+            throw new Error('Плохой запрос');
+          } else {
+            return response.json()
+          }
         })
         .then((responseText) => {
           userComments = responseText.comments;
@@ -145,9 +155,24 @@
         .then((data) => {
           addButton.disabled = false;
           addButton.textContent = "Написать";
+          nameUser.value = '';
+          textComment.value = '';
         })
-      nameUser.value = '';
-      textComment.value = '';
+        .catch((error) => {
+          if (error.message === 'Плохой запрос') {
+            addButton.disabled = false;
+            addButton.textContent = "Написать";
+            alert('Имя и текст должны содержать не менее 3 символов');
+          } else if (error.message === 'Сервер сломался') {
+            addButton.disabled = false;
+            addButton.textContent = "Написать";
+            alert('Возникли неполадки. Попробуйте позже');
+          } else {
+            addButton.disabled = false;
+            addButton.textContent = "Написать";
+            alert('Что-то пошло не так. Попробуйте позже');
+          }
+        })
     }
   });
 
