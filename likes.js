@@ -1,6 +1,6 @@
 import { renderComments } from './comments.js';
 
-export const initLikeButtons = ({userComments}) => {
+export const initLikeButtons = () => {
     const likeButtonElements = document.querySelectorAll('.like-button');
     for (const likeButtonElement of likeButtonElements) {
       likeButtonElement.addEventListener("click", (event) => {

@@ -189,6 +189,10 @@ body {
     opacity: 0.9;
   }
 
+  .authButton {
+    text-decoration: underline;
+  }
+
   .error {
     border: solid 2px red;
   }
