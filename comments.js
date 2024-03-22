@@ -1,9 +1,10 @@
-import { getCommentsList, postComment } from './api.js';
+import { getCommentsList, postComment, token } from './api.js';
 import { initLikeButtons } from './likes.js';
+
 
 export const commentList = document.getElementById('comments');
 const preloader = document.getElementById('preloader');
-let userComments = [];
+export let userComments = [];
 
 
 export const setValue = (newValue) => {
@@ -27,9 +28,16 @@ export const getComments = () => {
           isLiked: false
         };
       });
-      preloader.classList.add("hide");
-      userComments = textData;
-      renderComments({ userComments });
+      if (token === undefined) {
+        preloader.classList.add("hide");
+        userComments = textData;
+        renderComments({ userComments });
+      } else {
+        preloader.classList.add("hide");
+        userComments = textData;
+        renderCommentsWithAuth({ userComments });
+      }
+      
     })
     .catch((error) => {
       alert('Что-то пошло не так. Попробуйте позже');
@@ -45,7 +53,7 @@ export const initAnswerComment = () => {
       const userName = event.currentTarget.querySelector('.comment-name').textContent;
       const text = event.currentTarget.querySelector('.comment-text').textContent.trim();
       textComment.value = `-${text} \n - ${userName} \n`;
-      renderComments({ userComments });
+      renderCommentsWithAuth({ userComments });
     });
   });
 };
@@ -71,8 +79,31 @@ export const renderComments = ({ userComments }) => {
       </li>`;
   }).join('');
   commentList.innerHTML = commentsHtml;
-  initLikeButtons({ userComments });
+};
+
+export const renderCommentsWithAuth = ({ userComments }) => {
+  const commentsHtml = userComments.map((userComment, index) => {
+    return `<li class="comment" data-id="${userComment.id} data-index="${index}">
+        <div class="comment-header">
+          <div data-name="${name}" class="comment-name">${userComment.name}</div>
+          <div>${userComment.date.toLocaleDateString('ru-RU', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</div>
+        </div>
+        <div class="comment-body">
+          <div class="comment-text">
+            ${userComment.text}
+          </div>
+        </div>
+        <div class="comment-footer">
+          <div class="likes">
+            <span class="likes-counter">${userComment.likes}</span>
+            <button data-index="${index}" class="like-button ${userComment.isLiked ? 'like-button -active-like' : 'like-button'}"></button>
+          </div>
+        </div>
+      </li>`;
+  }).join('');
+  commentList.innerHTML = commentsHtml;
   initAnswerComment();
+  initLikeButtons();
 };
 
 export function postComments() {
@@ -106,7 +137,6 @@ export function postComments() {
       .then((data) => {
         addButton.disabled = false;
         addButton.textContent = "Написать";
-        nameUser.value = '';
         textComment.value = '';
       })
       .catch((error) => {
@@ -138,10 +168,12 @@ export const renderCommentsForm = () => {
   const addForm = document.getElementById('add-form');
   const formLogin = document.getElementById('add-login');
   addForm.innerHTML = commentsForm;
-  addForm.classList.remove('hide');
+  addForm.classList.add('add-form');
   commentList.classList.remove('hide');
   formLogin.classList.add('hide');
   clickAddButton();
+  initAnswerComment();
+  initLikeButtons();
 };
 
 export const clickAddButton = () => {

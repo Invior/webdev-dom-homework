@@ -193,6 +193,10 @@ body {
     text-decoration: underline;
   }
 
+  .authButton:hover {
+    cursor: pointer;
+  }
+
   .error {
     border: solid 2px red;
   }

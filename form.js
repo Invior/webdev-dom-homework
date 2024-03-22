@@ -16,14 +16,15 @@ export const clickEnterButton = () => {
                 }
             })
             .then((responseData) => {
+                renderCommentsForm();
                 setValue(responseData.user.name);
                 setToken(responseData.user.token);
                 console.log(token);
             })
             .catch((error) => {
                 alert(error.message);
+                console.log(error.message);
             })
-            renderCommentsForm();
     });
 };
 
@@ -42,6 +43,7 @@ export const clickRegFormButton = () => {
                 }
             })
             .then((responseData) => {
+                renderCommentsForm();
                 setValue(responseData.user.name);
                 setToken(responseData.user.token);
                 console.log(token);
@@ -49,7 +51,6 @@ export const clickRegFormButton = () => {
             .catch((error) => {
                 alert(error.message);
             })
-            renderCommentsForm();
     });
 };
 
