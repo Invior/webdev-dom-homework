@@ -8,19 +8,16 @@
 </head>
 
 <body>
+  <div class="container" id="app">
+    <div class="add-login hide" id="add-login">
 
-  <div class="container">
+    </div>
     <span id="preloader">Комментарии загружаются. Пожалуйста, подождите</span>
     <ul class="comments" id="comments">
       <!--renderComments-->
     </ul>
-    <div class="add-form">
-      <input type="text" class="add-form-name" id="form-name" placeholder="Введите ваше имя" />
-      <textarea type="textarea" class="add-form-text" id="form-text" placeholder="Введите ваш коментарий"
-        rows="4"></textarea>
-      <div class="add-form-row">
-        <button class="add-form-button" id="add-form-button">Написать</button>
-      </div>
+    <div id="add-form">
+      <p class="auth" id="auth">Чтобы добавить комментарий, <span class="authButton" id="authButton">авторизуйтесь</span></p>
     </div>
   </div>
 </body>

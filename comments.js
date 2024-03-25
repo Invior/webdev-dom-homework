@@ -1,52 +1,66 @@
-import { getCommentsList, postComment } from './api.js';
+import { getCommentsList, postComment, token } from './api.js';
 import { initLikeButtons } from './likes.js';
 
-const commentList = document.getElementById('comments');
-const nameUser = document.getElementById('form-name');
-const textComment = document.getElementById('form-text');
-const preloader = document.getElementById('preloader');
 
-export const getComments = ({ userComments }) => {
-    getCommentsList()
-        .then((response) => {
-            return response.json()
-        })
-        .then((responseText) => {
-            const textData = responseText.comments.map((comment) => {
-                return {
-                    id: comment.id,
-                    name: comment.author.name,
-                    date: new Date(comment.date),
-                    text: comment.text,
-                    likes: comment.likes,
-                    isLiked: false
-                };
-            });
-            preloader.classList.add("hide");
-            userComments = textData;
-            renderComments({ userComments });
-        })
-        .catch((error) => {
-            alert('Что-то пошло не так. Попробуйте позже');
-            console.log(error);
-        })
+export const commentList = document.getElementById('comments');
+const preloader = document.getElementById('preloader');
+export let userComments = [];
+
+
+export const setValue = (newValue) => {
+  const nameUser = document.getElementById('form-name');
+  nameUser.value = newValue;
+}
+
+export const getComments = () => {
+  getCommentsList()
+    .then((response) => {
+      return response.json()
+    })
+    .then((responseText) => {
+      const textData = responseText.comments.map((comment) => {
+        return {
+          id: comment.id,
+          name: comment.author.name,
+          date: new Date(comment.date),
+          text: comment.text,
+          likes: comment.likes,
+          isLiked: false
+        };
+      });
+      if (token === undefined) {
+        preloader.classList.add("hide");
+        userComments = textData;
+        renderComments({ userComments });
+      } else {
+        preloader.classList.add("hide");
+        userComments = textData;
+        renderCommentsWithAuth({ userComments });
+      }
+      
+    })
+    .catch((error) => {
+      alert('Что-то пошло не так. Попробуйте позже');
+      console.log(error);
+    })
 }
 
 export const initAnswerComment = () => {
-    const answerComment = document.querySelectorAll(".comment");
-    answerComment.forEach((comment) => {
-        comment.addEventListener('click', (event) => {
-            const userName = event.currentTarget.querySelector('.comment-name').textContent;
-            const text = event.currentTarget.querySelector('.comment-text').textContent.trim();
-            textComment.value = `-${text} \n - ${userName} \n`;
-            renderComments({ userComments });
-        });
+  const answerComment = document.querySelectorAll(".comment");
+  const textComment = document.getElementById('form-text');
+  answerComment.forEach((comment) => {
+    comment.addEventListener('click', (event) => {
+      const userName = event.currentTarget.querySelector('.comment-name').textContent;
+      const text = event.currentTarget.querySelector('.comment-text').textContent.trim();
+      textComment.value = `-${text} \n - ${userName} \n`;
+      renderCommentsWithAuth({ userComments });
     });
+  });
 };
 
 export const renderComments = ({ userComments }) => {
-    const commentsHtml = userComments.map((userComment, index) => {
-        return `<li class="comment" data-id="${userComment.id} data-index="${index}">
+  const commentsHtml = userComments.map((userComment, index) => {
+    return `<li class="comment" data-id="${userComment.id} data-index="${index}">
         <div class="comment-header">
           <div data-name="${name}" class="comment-name">${userComment.name}</div>
           <div>${userComment.date.toLocaleDateString('ru-RU', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</div>
@@ -63,15 +77,40 @@ export const renderComments = ({ userComments }) => {
           </div>
         </div>
       </li>`;
-    }).join('');
-    commentList.innerHTML = commentsHtml;
-    initLikeButtons({ userComments });
-    initAnswerComment();
+  }).join('');
+  commentList.innerHTML = commentsHtml;
 };
 
-export function postComments ({addButton, userComments}) {
-    const oldList = commentList.innerHTML;
-  nameUser.classList.remove("error");
+export const renderCommentsWithAuth = ({ userComments }) => {
+  const commentsHtml = userComments.map((userComment, index) => {
+    return `<li class="comment" data-id="${userComment.id} data-index="${index}">
+        <div class="comment-header">
+          <div data-name="${name}" class="comment-name">${userComment.name}</div>
+          <div>${userComment.date.toLocaleDateString('ru-RU', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</div>
+        </div>
+        <div class="comment-body">
+          <div class="comment-text">
+            ${userComment.text}
+          </div>
+        </div>
+        <div class="comment-footer">
+          <div class="likes">
+            <span class="likes-counter">${userComment.likes}</span>
+            <button data-index="${index}" class="like-button ${userComment.isLiked ? 'like-button -active-like' : 'like-button'}"></button>
+          </div>
+        </div>
+      </li>`;
+  }).join('');
+  commentList.innerHTML = commentsHtml;
+  initAnswerComment();
+  initLikeButtons();
+};
+
+export function postComments() {
+  const textComment = document.getElementById('form-text');
+  const nameUser = document.getElementById('form-name');
+  const addButton = document.getElementById('add-form-button');
+  const oldList = commentList.innerHTML;
   textComment.classList.remove("error");
   if (nameUser.value.trim() === "") {
     nameUser.classList.add("error");
@@ -98,7 +137,6 @@ export function postComments ({addButton, userComments}) {
       .then((data) => {
         addButton.disabled = false;
         addButton.textContent = "Написать";
-        nameUser.value = '';
         textComment.value = '';
       })
       .catch((error) => {
@@ -118,4 +156,29 @@ export function postComments ({addButton, userComments}) {
         }
       })
   }
+}
+
+export const renderCommentsForm = () => {
+  const commentsForm = `<input type="text" class="add-form-name" id="form-name" readonly="readonly"/>
+  <textarea type="textarea" class="add-form-text" id="form-text" placeholder="Введите ваш коментарий"
+    rows="4"></textarea>
+  <div class="add-form-row">
+    <button class="add-form-button" id="add-form-button">Написать</button>
+  </div>`;
+  const addForm = document.getElementById('add-form');
+  const formLogin = document.getElementById('add-login');
+  addForm.innerHTML = commentsForm;
+  addForm.classList.add('add-form');
+  commentList.classList.remove('hide');
+  formLogin.classList.add('hide');
+  clickAddButton();
+  initAnswerComment();
+  initLikeButtons();
+};
+
+export const clickAddButton = () => {
+  const addButton = document.getElementById('add-form-button');
+  addButton.addEventListener("click", () => {
+    postComments(addButton, userComments);
+  });
 }

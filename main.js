@@ -1,11 +1,15 @@
 "use strict";
-import { getComments, postComments } from './comments.js';
+import { getComments } from './comments.js';
+import { renderRegForm } from './form.js';
 
-const addButton = document.getElementById('add-form-button');
-let userComments = [];
+const authButton = document.getElementById('authButton');
+const formLogin = document.getElementById('add-login');
+const auth = document.getElementById('auth');
 
-getComments({ userComments });
+getComments();
 
-addButton.addEventListener("click", () => {
-  postComments({addButton, userComments});
+authButton.addEventListener('click', () => {
+  formLogin.classList.remove('hide');
+  auth.classList.add('hide');
+  renderRegForm();
 });

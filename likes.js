@@ -1,6 +1,6 @@
-import { renderComments } from './comments.js';
+import { renderCommentsWithAuth, userComments } from './comments.js';
 
-export const initLikeButtons = ({userComments}) => {
+export const initLikeButtons = () => {
     const likeButtonElements = document.querySelectorAll('.like-button');
     for (const likeButtonElement of likeButtonElements) {
       likeButtonElement.addEventListener("click", (event) => {
@@ -13,7 +13,7 @@ export const initLikeButtons = ({userComments}) => {
           userComments[index].isLiked = false;
           userComments[index].likes -= 1;
         }
-        renderComments({userComments});
+        renderCommentsWithAuth({userComments});
       });
     }
   };
