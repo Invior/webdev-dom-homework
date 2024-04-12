@@ -1,5 +1,6 @@
 import { getCommentsList, postComment, token } from './api.js';
 import { initLikeButtons } from './likes.js';
+import { format } from "date-fns";
 
 
 export const commentList = document.getElementById('comments');
@@ -22,7 +23,7 @@ export const getComments = () => {
         return {
           id: comment.id,
           name: comment.author.name,
-          date: new Date(comment.date),
+          date: format(new Date(comment.date), "yyyy-MM-dd HH:mm:ss"),
           text: comment.text,
           likes: comment.likes,
           isLiked: false
@@ -37,7 +38,7 @@ export const getComments = () => {
         userComments = textData;
         renderCommentsWithAuth({ userComments });
       }
-      
+
     })
     .catch((error) => {
       alert('Что-то пошло не так. Попробуйте позже');
@@ -63,7 +64,7 @@ export const renderComments = ({ userComments }) => {
     return `<li class="comment" data-id="${userComment.id} data-index="${index}">
         <div class="comment-header">
           <div data-name="${name}" class="comment-name">${userComment.name}</div>
-          <div>${userComment.date.toLocaleDateString('ru-RU', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</div>
+          <div>${userComment.date}</div>
         </div>
         <div class="comment-body">
           <div class="comment-text">
@@ -86,7 +87,7 @@ export const renderCommentsWithAuth = ({ userComments }) => {
     return `<li class="comment" data-id="${userComment.id} data-index="${index}">
         <div class="comment-header">
           <div data-name="${name}" class="comment-name">${userComment.name}</div>
-          <div>${userComment.date.toLocaleDateString('ru-RU', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</div>
+          <div>${userComment.date}</div>
         </div>
         <div class="comment-body">
           <div class="comment-text">
